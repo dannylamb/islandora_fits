@@ -50,6 +50,7 @@ function islandora_fits_media_presave(MediaInterface $media) {
     return;
   }
   else {
+    \Drupal::logger('islandora_fits')->debug("== Presaving media @data ==", ['@data' => $media->id()]);
     $transformer = \Drupal::getContainer()->get('islandora_fits.transformxml');
     $media->set('field_complete', TRUE);
     $file_id = $media->get('field_media_file')->getValue()[0]['target_id'];
@@ -59,9 +60,11 @@ function islandora_fits_media_presave(MediaInterface $media) {
       // Adds any new fields to FITS media type.
       $has_new = $transformer->checkNew($data);
       if ($has_new) {
+    \Drupal::logger('islandora_fits')->debug("== Setting field_complete to FALSE ==");
         $media->set('field_complete', FALSE);
       }
       else {
+    \Drupal::logger('islandora_fits')->debug("== Populating media @data ==", ['@data' => $media->id()]);
         $transformer->populateMedia($data, $media);
       }
     }
@@ -77,10 +80,12 @@ function islandora_fits_media_update(MediaInterface $media) {
     return;
   }
   if ($media->get('field_complete')->value == FALSE) {
+    \Drupal::logger('islandora_fits')->debug("== Updating media @data ==", ['@data' => $media->id()]);
     $transformer = \Drupal::getContainer()->get('islandora_fits.transformxml');
     $file_id = $media->get('field_media_file')->getValue()[0]['target_id'];
     $file = File::load($file_id);
     $data = file_get_contents($file->getFileUri());
+    \Drupal::logger('islandora_fits')->debug("== Adding fields to media @data ==", ['@data' => $media->id()]);
     $transformer->addMediaFields($data);
     $new_media = Media::load($media->id());
     $new_media->set('field_complete', TRUE);
@@ -93,6 +98,7 @@ function islandora_fits_media_update(MediaInterface $media) {
  */
 function islandora_fits_media_insert(MediaInterface $media) {
   if ($media->bundle() == 'fits_technical_metadata') {
+    \Drupal::logger('islandora_fits')->debug("== Inserting media @data ==", ['@data' => $media->id()]);
     islandora_fits_media_update($media);
   }
 }

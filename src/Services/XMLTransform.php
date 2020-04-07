@@ -303,9 +303,11 @@ class XMLTransform extends ServiceProviderBase {
       $all_fields = array_merge($all_fields, $this->harvestValues($datum));
     }
     $to_process = $this->normalizeNames($all_fields);
+    \Drupal::logger('islandora_fits')->debug("== Adding fields @data ==", ['@data' => json_encode($to_process)]);
     foreach ($to_process as $field) {
       $exists = FieldStorageConfig::loadByName('media', $field['field_name']);
       if (!$exists) {
+    \Drupal::logger('islandora_fits')->debug("== Creating field storage @data ==", ['@data' => $field['field_name']]);
         $field_storage = FieldStorageConfig::create([
           'entity_type' => 'media',
           'field_name' => $field['field_name'],
@@ -317,6 +319,7 @@ class XMLTransform extends ServiceProviderBase {
       $bundle_keys = array_keys($bundle_fields);
       if (!in_array($field['field_name'], $bundle_keys)) {
         $field_storage = FieldStorageConfig::loadByName('media', $field['field_name']);
+    \Drupal::logger('islandora_fits')->debug("== Creating field definition @data ==", ['@data' => $field['field_name']]);
         FieldConfig::create([
           'field_storage' => $field_storage,
           'bundle' => 'fits_technical_metadata',
@@ -349,7 +352,9 @@ class XMLTransform extends ServiceProviderBase {
       $field_name = substr("fits_$normalized", 0, 32);
       $to_add[$field_name] = $field_value;
     }
+    \Drupal::logger('islandora_fits')->debug("== Populating fields @data ==", ['@data' => json_encode($to_add)]);
     foreach ($to_add as $field_name => $field_value) {
+    \Drupal::logger('islandora_fits')->debug("== Setting @name to @data ==", ['@name' => $field_name, '@data' => $field_value]);
       $media->set($field_name, $field_value);
     }
   }
